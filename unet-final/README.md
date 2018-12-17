@@ -1,41 +1,60 @@
-# Implementation of deep learning framework -- Unet, using Keras
+# Modified Multi Class U-NET with Keras for Semantic Segmentation of Aortic Dissection Images  
 
-The architecture was inspired by [U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
+U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
+
+Code inspired by: https://github.com/zhixuhao/unet
 
 ---
 
 ## Overview
 
+A 2D U-net as well as 3D U-net implementation for segmentation of aorta images.
+
+Input to 2D is of form: (256x256x1)
+
+Ground truth:           (256x256x3) 
+
+
+Input to 3D is of form (4x256x256x1)
+
+Ground truth:          (4x256x256x3)
+
+
 ### Data
 
-The original dataset is from [isbi challenge](http://brainiac2.mit.edu/isbi_challenge/), and I've downloaded it and done the pre-processing.
-
-You can find it in folder data/membrane.
+Input is 256x256 grayscale images.
 
 ### Data augmentation
 
-The data for training contains 30 512*512 images, which are far not enough to feed a deep learning neural network. I use a module called ImageDataGenerator in keras.preprocessing.image to do data augmentation.
-
-See dataPrepare.ipynb and data.py for detail.
+None
 
 
 ### Model
 
-![img/u-net-architecture.png](img/u-net-architecture.png)
+![img/u-net.png](img/u-net.png)
 
-This deep neural network is implemented with Keras functional API, which makes it extremely easy to experiment with different interesting architectures.
+This deep neural network is implemented with Keras functional API.
 
-Output from the network is a 512*512 which represents mask that should be learned. Sigmoid activation function
-makes sure that mask pixels are in \[0, 1\] range.
+Output from the network is a 256x256x3.
 
-### Training
 
-The model is trained for 5 epochs.
+### Loss functions
 
-After 5 epochs, calculated accuracy is about 0.97.
+Dice_Coef_Loss = 1 - Dice Score
 
-Loss function for the training is basically just a binary crossentropy.
+Categorical_Crossentropy_Loss
 
+Combined_Loss = w0(Categorical_Crossentropy_Loss)+ w1(Dice_Coef_Loss)
+
+
+### Results
+
+Dice Score used for metric.
+
+|    Model   | DC Train  (%)| DC Test   (%)| DC Test   (%)|
+|:----------:|:------------:|:------------:|:------------:|
+|   2D U-net |     93       |      89      |      72      |
+|   3D U-net |     92       |      88      |      80      |
 
 ---
 
@@ -47,24 +66,14 @@ This tutorial depends on the following libraries:
 
 * Tensorflow
 * Keras >= 1.0
+* Python versions 2.7-3.5
 
-Also, this code should be compatible with Python versions 2.7-3.5.
+For 2D Follow notebook train_2D
+For 3D Follow notebook train_3D
 
-### Run main.py
+You will see the predicted results of test image in data/test_results
 
-You will see the predicted results of test image in data/membrane/test
-
-### Or follow notebook trainUnet
-
-
-
-### Results
-
-Use the trained model to do segmentation on test images, the result is statisfactory.
-
-![img/0test.png](img/0test.png)
-
-![img/0label.png](img/0label.png)
+### 
 
 
 ## About Keras
