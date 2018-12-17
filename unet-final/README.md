@@ -23,13 +23,13 @@ This deep neural network is implemented with Keras functional API.
 
 Output from the network is a 256x256x3.
 
-### Training
 
-The model is trained for 5 epochs.
+### Loss functions
 
-Loss functions:
 Dice_Coef_Loss = 1 - Dice Score
+
 Categorical_Crossentropy_Loss
+
 Combined_Loss = w0(Categorical_Crossentropy_Loss)+ w1(Dice_Coef_Loss)
 
 ---
@@ -44,8 +44,8 @@ This tutorial depends on the following libraries:
 * Keras >= 1.0
 * Python versions 2.7-3.5
 
-### For 2D Follow notebook train_2D
-### For 3D Follow notebook train_3D
+For 2D Follow notebook train_2D
+For 3D Follow notebook train_3D
 
 You will see the predicted results of test image in data/test_results
 
