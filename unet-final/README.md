@@ -1,96 +1,82 @@
-# Keras-LinkNet [CS230-Indrasen Bhattacharya]
+# Implementation of deep learning framework -- Unet, using Keras
 
-Keras implementation adapted from Keras-LinkNet developed by David Silva (davidtvs): https://github.com/davidtvs/Keras-LinkNet/
-Readme from the original GitHub is appended below. Key changes made for the purpose of the CS230 project are summarized below.
+The architecture was inspired by [U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
 
-## Changes for CS 230 Project
-1. Additional DataGenerator for the aortic dissection dataset: dissection_generator.py, under the data directory
-2. Modified decoder block in linknet.py under the models directory. The function decoder_block was modified: a dropout layer was added after each layer, and L2 regularization was also included. This was done in order to reduce overfitting and improve generalization accuracy (test accuracy on novel studies).
-3. Added soft_dice_coef and soft_dice_coef_loss to utils.py (under data directory)
+---
 
-## Data processing scripts
-The following python notebooks were used to transform the images to a format more suitable for learning (collected together in the folder 'data processing'):
-1. convertRGB.ipynb: obtains png images and replicates data across channels (for both images and masks). Note that the images are downsampled from [256, 256] to [100, 100] - the downsampling speeded up training by a factor of 3x and had no effect on accuracy, since the relevant features are still visible in the downsampled images.
-2. convertRGB_v2.ipynb: obtains png images for each study and constructs a polynomial fit across Z slices, using the 10 images before and after. The 3 coefficients (order 0, order 1 and order 2) are used as channels on the images. This eliminates local slice variation which is not expected to have a major effect on the segmentation, and may in fact add noise. The masks are copied and replicated (corresponding to the current Z-slice).
-3. generateDataset.ipynb: Samples 1400 files from the entire dataset and splits them into training/validation/test after randomly permuting the list.
-4. radonDisplay.ipynb: Generates and displays the radon transform of an image. This could be used to add tomographic reconstruction noise, for data augmentation in future implementation.
+## Overview
 
-Other simple naming and file conversion operations were performed with shell commands.
+### Data
 
-## Checkpoints
-The checkpoints contain weights for some of the trained LinkNets. A systematic hyperparameter search for learning rate was performed, followed with some exploration of dropout and L2 coefficients. The results are summarized in the report. The network weights are not included in the submission due to file size constraints.
+The original dataset is from [isbi challenge](http://brainiac2.mit.edu/isbi_challenge/), and I've downloaded it and done the pre-processing.
+
+You can find it in folder data/membrane.
+
+### Data augmentation
+
+The data for training contains 30 512*512 images, which are far not enough to feed a deep learning neural network. I use a module called ImageDataGenerator in keras.preprocessing.image to do data augmentation.
+
+See dataPrepare.ipynb and data.py for detail.
 
 
-## Readme from github source
+### Model
 
-Keras implementation of [*LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation*](https://arxiv.org/abs/1707.03718), ported from the lua-torch ([LinkNet](https://github.com/e-lab/LinkNet)) and PyTorch ([pytorch-linknet](https://github.com/e-lab/pytorch-linknet)) implementation, both created by the authors.
+![img/u-net-architecture.png](img/u-net-architecture.png)
 
-|                                Dataset                               | Classes <sup>1</sup> | Input resolution | Batch size | Mean IoU (%) |
-|:--------------------------------------------------------------------:|:--------------------:|:----------------:|:----------:|:------------:|
-| [CamVid](http://mi.eng.cam.ac.uk/research/projects/VideoRec/CamVid/) |          12          |      960x480     |      2     |     47.15<sup>2</sup>    |
-|           [Cityscapes](https://www.cityscapes-dataset.com/)          |          20          |     1024x512     |      2     |     53.37<sup>3</sup>    |
+This deep neural network is implemented with Keras functional API, which makes it extremely easy to experiment with different interesting architectures.
 
-<sup>1</sup> Includes the unlabeled/void class.<br/>
-<sup>2</sup> Test set.<br/>
-<sup>3</sup> Validation set.
+Output from the network is a 512*512 which represents mask that should be learned. Sigmoid activation function
+makes sure that mask pixels are in \[0, 1\] range.
 
-## Installation
+### Training
 
-1. Python 3 and pip.
-2. Set up a virtual environment (optional, but recommended).
-3. Install dependencies using pip: ``pip install -r requirements.txt``.
+The model is trained for 5 epochs.
+
+After 5 epochs, calculated accuracy is about 0.97.
+
+Loss function for the training is basically just a binary crossentropy.
 
 
-## Usage
+---
 
-Run [``main.py``](https://github.com/davidtvs/Keras-LinkNet/blob/master/main.py), the main script file used for training and/or testing the model. The following options are supported:
+## How to use
 
-```
-python main.py [-h] [--mode {train,test,full}] [--resume]
-               [--initial-epoch INITIAL_EPOCH] [--no-pretrained-encoder]
-               [--weights-path WEIGHTS_PATH] [--batch-size BATCH_SIZE]
-               [--epochs EPOCHS] [--learning-rate LEARNING_RATE]
-               [--lr-decay LR_DECAY] [--lr-decay-epochs LR_DECAY_EPOCHS]
-               [--dataset {camvid,cityscapes}] [--dataset-dir DATASET_DIR]
-               [--workers WORKERS] [--verbose {0,1,2}] [--name NAME]
-               [--checkpoint-dir CHECKPOINT_DIR]
-```
+### Dependencies
 
-For help on the optional arguments run: ``python main.py -h``
+This tutorial depends on the following libraries:
 
+* Tensorflow
+* Keras >= 1.0
 
-### Examples: Training
+Also, this code should be compatible with Python versions 2.7-3.5.
 
-```
-python main.py -m train --checkpoint-dir save/folder/ --name model_name --dataset name --dataset-dir path/root_directory/
-```
+### Run main.py
+
+You will see the predicted results of test image in data/membrane/test
+
+### Or follow notebook trainUnet
 
 
-### Examples: Resuming training
 
-```
-python main.py -m train --resume True --initial-epoch 10 --checkpoint-dir save/folder/ --name model_name --dataset name --dataset-dir path/root_directory/
-```
+### Results
 
+Use the trained model to do segmentation on test images, the result is statisfactory.
 
-### Examples: Testing
+![img/0test.png](img/0test.png)
 
-```
-python main.py -m test --checkpoint-dir save/folder/ --name model_name --dataset name --dataset-dir path/root_directory/
-```
+![img/0label.png](img/0label.png)
 
 
-## Project structure
+## About Keras
 
-### Folders
+Keras is a minimalist, highly modular neural networks library, written in Python and capable of running on top of either TensorFlow or Theano. It was developed with a focus on enabling fast experimentation. Being able to go from idea to result with the least possible delay is key to doing good research.
 
-- [``data``](https://github.com/davidtvs/Keras-LinkNet/tree/master/data): Contains code to load the supported datasets.
-- [``metrics``](https://github.com/davidtvs/Keras-LinkNet/tree/master/metric): Evaluation-related metrics.
-- [``models``](https://github.com/davidtvs/Keras-LinkNet/tree/master/models): LinkNet model definition.
-- [``checkpoints``](https://github.com/davidtvs/Keras-LinkNet/tree/master/checkpoints): By default, ``main.py`` will save models in this folder. The pre-trained encoder (ResNet18) trained on ImageNet can be found here.
+Use Keras if you need a deep learning library that:
 
-### Files
+allows for easy and fast prototyping (through total modularity, minimalism, and extensibility).
+supports both convolutional networks and recurrent networks, as well as combinations of the two.
+supports arbitrary connectivity schemes (including multi-input and multi-output training).
+runs seamlessly on CPU and GPU.
+Read the documentation [Keras.io](http://keras.io/)
 
-- [``args.py``](https://github.com/davidtvs/Keras-LinkNet/blob/master/arg.py): Contains all command-line options.
-- [``main.py``](https://github.com/davidtvs/Keras-LinkNet/blob/master/main.py): Main script file used for training and/or testing the model.
-- [``callbacks.py``](https://github.com/davidtvs/Keras-LinkNet/blob/master/callbacks.py): Custom callbacks are defined here.
+Keras is compatible with: Python 2.7-3.5.
