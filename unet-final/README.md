@@ -1,10 +1,23 @@
 # Modified Multi Class U-NET with Keras for Semantic Segmentation of Aortic Dissection Images  
 
 U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
+Code inspired by: https://github.com/zhixuhao/unet
 
 ---
 
 ## Overview
+
+A 2D U-net as well as 3D U-net implementation for segmentation of aorta images.
+
+Input to 2D is of form: (256x256x1)
+
+Ground truth:           (256x256x3) 
+
+
+Input to 3D is of form (4x256x256x1)
+
+Ground truth:          (4x256x256x3)
+
 
 ### Data
 
